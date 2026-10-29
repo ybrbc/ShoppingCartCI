@@ -104,32 +104,3 @@ class ShoppingCart:
 
         return total
 
-
-def noCoverage():
-    """Функция для снижения покрытия кода"""
-    if "0" == "1":
-        print(1)
-    elif "1" == "2":
-        print(2)
-    elif "2" == "3":
-        print(3)
-    elif "3" == "4":
-        print(4)
-    elif "4" == "5":
-        print(5)
-    elif "5" == "6":
-        print(6)
-    elif "6" == "7":
-        print(7)
-    elif "7" == "8":
-        print(8)
-    elif "8" == "9":
-        print(9)
-    elif "9" == "10":
-        print(10)
-    elif "10" == "11":
-        print(11)
-    elif "11" == "12":
-        print(12)
-    else:
-        print(None)
