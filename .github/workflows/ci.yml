@@ -4,18 +4,30 @@ on:
     branches:
       - master
       - main
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'requirements.txt'
+      - '.github/workflows/**'
   pull_request:
     branches:
       - master
       - main
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'requirements.txt'
+      - '.github/workflows/**'
 
   workflow_dispatch:
 
 permissions:
   contents: read
+  checks: write
+  pull-requests: write
 
 concurrency:
-  group: tests
+  group: python-tests-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   test:
@@ -33,4 +45,11 @@ jobs:
       - run: pip install -r requirements.txt
 
       - name: Run tests
-        run: python -m pytest
+        run: python -m pytest --junitxml=pytest-results.xml
+
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: (!cancelled())
+        with:
+          files:
+            pytest-results.xml
