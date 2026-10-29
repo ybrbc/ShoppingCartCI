@@ -22,7 +22,7 @@ def test_product_creation_and_validation() -> None:
     assert product.price == 25000.0
     assert product.stock == 10
 
-    with pytest.raises(ValueError, match="Стоимость товара не может быть    отрицательной"):
+    with pytest.raises(ValueError, match="Стоимость товара не может быть отрицательной"):
         Product(id="prod_1", name="Тест", price=-10.0, stock=5)
 
     with pytest.raises(ValueError, match="Количество товара на складе не может быть отрицательным"):
