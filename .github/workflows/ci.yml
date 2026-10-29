@@ -44,11 +44,9 @@ jobs:
           cache-dependency-path: requirements.txt
       - run: pip install -r requirements.txt
 
-      - name: Run tests
+      - name: Run tests and generate coverage reports
         run: |
-          coverage run -m pytest --junitxml=pytest-results.xml
-          coverage report --fail-under=80 --include="src/*"
-          coverage xml --include="src/*" -o "pycoverage-results.xml"
+          coverage run --source=src -m pytest --junitxml=pytest-results.xml
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
@@ -56,18 +54,38 @@ jobs:
         with:
           files:
             pytest-results.xml
-      - name: Code Coverage Summary Report
-        uses: irongut/CodeCoverageSummary@v1.3.0
-        if: (!cancelled())
-        with:
-          filename: pycoverage-results.xml
-          format: 'markdown'
-          output: 'file'
-          thresholds: '80 80'
 
-      - name: Add Coverage to Job Summary
+      - name: Check Coverage Threshold
+        id: cov_check
+        if: (!cancelled())
+        run: coverage report --fail-under=80
+
+      - name: Generate and Add Coverage to Job Summary
         if: (!cancelled())
         run: |
-          if [ -f code-coverage-results.md ]; then
-            cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
-          fi
+          coverage report --format=markdown > code-coverage-results.md
+          echo "## Code Coverage Report" >> $GITHUB_STEP_SUMMARY
+          cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Publish Code Coverage Check
+        uses: actions/github-script@v7
+        if: (!cancelled())
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('code-coverage-results.md', 'utf8');
+            const outcome = '${{ steps.cov_check.outcome }}';
+            const sha = context.payload.pull_request ? context.payload.pull_request.head.sha : context.sha;
+
+            await github.rest.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'Code Coverage',
+              head_sha: sha,
+              status: 'completed',
+              conclusion: outcome === 'success' ? 'success' : 'failure',
+              output: {
+                title: 'Code Coverage Report',
+                summary: summary
+              }
+            });
