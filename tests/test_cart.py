@@ -89,3 +89,38 @@ def test_get_total_price(cart: ShoppingCart) -> None:
     cart.add_item("prod_101", 1)  # 50000.0
     cart.add_item("prod_102", 2)  # 50000.0
     assert cart.get_total_price() == 100000.0
+
+
+def test_promo_code_application_and_discount(cart: ShoppingCart) -> None:
+    cart.add_item("prod_101", 1)  # 50000.0
+    cart.add_item("prod_102", 2)  # 50000.0
+
+    # Применение промокода через отдельный метод (скидка 10%)
+    cart.apply_promo_code("SALE10")
+    assert cart.applied_promo == "SALE10"
+    assert cart.get_total_price() == 90000.0
+
+    # Применение промокода напрямую при расчете стоимости (скидка 50%)
+    assert cart.get_total_price(promo_code="HALF50") == 50000.0
+
+
+def test_promo_code_errors(sample_catalog: list[Product]) -> None:
+    custom_cart = ShoppingCart(
+        sample_catalog,
+        promo_codes={"INVALID_ZERO": 0.0, "INVALID_OVER": 150.0, "VALID15": 15.0},
+    )
+    custom_cart.add_item("prod_101", 1)
+
+    # Несуществующий промокод
+    with pytest.raises(ValueError, match="не найден"):
+        custom_cart.apply_promo_code("UNKNOWN")
+
+    # Некорректный процент скидки (<= 0 или > 100)
+    with pytest.raises(ValueError, match="в диапазоне от 0 до 100"):
+        custom_cart.apply_promo_code("INVALID_ZERO")
+
+    with pytest.raises(ValueError, match="в диапазоне от 0 до 100"):
+        custom_cart.get_total_price(promo_code="INVALID_OVER")
+
+    # Валидный пользовательский промокод
+    assert custom_cart.get_total_price(promo_code="VALID15") == 42500.0
