@@ -13,11 +13,6 @@ on:
     branches:
       - master
       - main
-    paths:
-      - 'src/**'
-      - 'tests/**'
-      - 'requirements.txt'
-      - '.github/workflows/**'
 
   workflow_dispatch:
 
@@ -30,7 +25,26 @@ concurrency:
   group: python-tests-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      python: ${{ steps.filter.outputs.python }}
+    steps:
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            python:
+              - 'src/**'
+              - 'tests/**'
+              - 'requirements.txt'
+              - '.github/workflows/**'
+
   test:
+    needs: changes
+    if: ${{ needs.changes.outputs.python == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
