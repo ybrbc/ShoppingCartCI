@@ -27,11 +27,10 @@ concurrency:
 jobs:
   changes:
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: read
     outputs:
       python: ${{ steps.filter.outputs.python }}
     steps:
+      - uses: actions/checkout@v7
       - uses: dorny/paths-filter@v4
         id: filter
         with:
