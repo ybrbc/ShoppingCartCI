@@ -1,5 +1,5 @@
 import pytest
-from src.cart import Product, ShoppingCart
+from cart import Product, ShoppingCart
 
 
 @pytest.fixture
